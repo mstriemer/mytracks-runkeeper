@@ -1,11 +1,10 @@
-import pprint
 import httplib2
 from itertools import izip
 from datetime import datetime, timedelta
 import time
 import json
-
-from pykml import parser
+import xml.etree.ElementTree as parser
+import logging
 
 
 def upload_to_runkeeper(content):
@@ -21,7 +20,7 @@ def upload_to_runkeeper(content):
 
     ns = '{http://www.google.com/kml/ext/2.2}'
     track = root.find('.//{ns}{tag}'.format(ns=ns, tag='Track'))
-    children = track.iterchildren()
+    children = iter(track)
     for ts, geo in izip(children, children):
         point_time = datetime.strptime(
             ts.text,
@@ -59,8 +58,8 @@ def upload_to_runkeeper(content):
         data = json.loads(f.read())
         rkaccess_token = data['access_token']
 
-    with open('activity-{}.json'.format(start_time), 'w') as f:
-        f.write(activity_json)
+    logger = logging.getLogger('runkeeper_api')
+    logger.info("Request: %s", activity_json)
 
     rk_http = httplib2.Http()
     resp, content = rk_http.request(
@@ -73,8 +72,13 @@ def upload_to_runkeeper(content):
         body=activity_json,
     )
 
-    pprint.pprint(resp)
-    pprint.pprint(content)
+    logger.info("Response: %s", resp)
+    activity = {
+        'id': int(resp['location'].split('/')[-1]),
+        'location': resp['location'],
+    }
+
+    return activity
 
 
 def current_timezone_offset():

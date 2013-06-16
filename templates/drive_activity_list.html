@@ -1,0 +1,26 @@
+<h1>Drive Activities</h1>
+
+<div class="drive-activities">
+    <h2>Uploaded Activities</h2>
+    {% for da in drive_activities %}
+    <div class="item">
+        {{ da.name }} (Runkeeper ID {{ da.runkeeper_activity_id }})
+    </div>
+    {% else %}
+    No uploaded activities.
+    {% endfor %}
+</div>
+
+<div class="drive-files">
+    <h2>Other Files</h2>
+    {% for df in drive_files %}
+    <div class="item">
+        <form action="{{ "/upload/{id}/".format(id=df['id']) }}" method="post">
+            {{ df['title'] }}
+            <input type="submit" value="Upload" />
+        </form>
+    </div>
+    {% else %}
+    No other files in Drive.
+    {% endfor %}
+</div>

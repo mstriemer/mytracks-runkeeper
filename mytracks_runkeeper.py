@@ -4,6 +4,7 @@ import os
 
 from runkeeper import upload_to_runkeeper
 from drive import Drive
+from models import DriveActivity
 
 drive_service = Drive(
     os.environ['GOOGLE_API_CLIENT_ID'],
@@ -23,7 +24,11 @@ tracks = drive_service.files(folder)
 for i, track in enumerate(tracks):
     print('{}: {}'.format(i, track['title']))
 index = raw_input("Track number: ")
-
 track = tracks[int(index)]
+
+q = DriveActivity.all()
+q.filter('pk =', track['id'])
+drive_activity = q[0]
+
 content = drive_service.download(track)
-upload_to_runkeeper(content)
+activity = upload_to_runkeeper(content)

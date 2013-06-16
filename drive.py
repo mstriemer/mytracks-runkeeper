@@ -31,9 +31,8 @@ class Drive(object):
             return [f for f in self._files
                     if parent['id'] in [p['id'] for p in f['parents']]]
 
-    def file_for_path(self, path):
-        for f in self.files():
-            pass
+    def file(self, file_id):
+        return self.service.files().get(fileId=file_id).execute()
 
     def load_credentials(self):
         try:
