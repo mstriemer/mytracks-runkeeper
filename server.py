@@ -5,7 +5,7 @@ from datetime import datetime
 import webapp2
 from webapp2 import redirect
 from webapp2_extras import jinja2
-import urlfetch
+from google.appengine.api import urlfetch
 
 from models import DriveActivity
 from drive import Drive
