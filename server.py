@@ -16,10 +16,8 @@ credentials_path = os.path.join(
 with open(credentials_path) as f:
     credentials = json.loads(f.read())
 
-drive_service = Drive(
-    credentials['client_id'],
-    credentials['client_secret'],
-)
+def DriveService():
+  return Drive(credentials['client_id'], credentials['client_secret'])
 
 
 class BaseHandler(webapp2.RequestHandler):
@@ -47,6 +45,7 @@ class DriveActivityList(BaseHandler):
     def get(self):
         q = DriveActivity.all()
         q.order('-uploaded_version_date')
+        drive_service = DriveService()
         uploaded_drive_ids = [da.pk for da in q]
         drive_folder = find_drive_folder(drive_service, 'My Tracks')
         drive_files = drive_service.files(drive_folder)
@@ -62,6 +61,7 @@ class DriveActivityList(BaseHandler):
 class UploadDriveActivity(BaseHandler):
 
     def post(self, file_id):
+        drive_service = DriveService()
         drive_file = drive_service.file(file_id)
         content = drive_service.download(drive_file)
         activity = upload_to_runkeeper(content)
