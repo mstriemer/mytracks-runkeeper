@@ -5,11 +5,13 @@ from datetime import datetime
 import webapp2
 from webapp2 import redirect
 from webapp2_extras import jinja2
+import urlfetch
 
 from models import DriveActivity
 from drive import Drive
 from runkeeper import upload_to_runkeeper
 
+urlfetch.set_default_fetch_deadline(45)
 credentials_path = os.path.join(
     os.path.dirname(__file__),
     'google_api_credentials.json')
