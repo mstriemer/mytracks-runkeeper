@@ -8,38 +8,7 @@ import logging
 
 
 def upload_to_runkeeper(content):
-    root = parser.fromstring(content)
-    ns = '{http://www.opengis.net/kml/2.2}'
-    tour = root.find('.//{ns}{tag}[@id="tour"]'.format(ns=ns, tag='Placemark'))
-
-    assert tour is not None
-
-    path = []
-    start_time = None
-    tz_offset = current_timezone_offset()
-
-    ns = '{http://www.google.com/kml/ext/2.2}'
-    track = root.find('.//{ns}{tag}'.format(ns=ns, tag='Track'))
-    children = iter(track)
-    for ts, geo in izip(children, children):
-        point_time = datetime.strptime(
-            ts.text,
-            '%Y-%m-%dT%H:%M:%S.%fZ')
-        point_time += tz_offset
-        if start_time is None:
-            start_time = point_time
-        time_delta = point_time - start_time
-        longitude, latitude, altitude = geo.text.split(' ')
-        path.append({
-            'timestamp': time_delta.total_seconds(),
-            'altitude': altitude,
-            'longitude': longitude,
-            'latitude': latitude,
-            'type': 'gps',
-        })
-
-    path[0]['type'] = 'start'
-    path[-1]['type'] = 'end'
+    start_time, path = parse_track(content)
 
     activity = {
         'type': 'Cycling',
@@ -87,3 +56,46 @@ def current_timezone_offset():
     if time.gmtime() > time.localtime():
         tz_offset = -tz_offset
     return tz_offset
+
+def parse_track(content):
+    root = parser.fromstring(content)
+    ns = '{http://www.opengis.net/kml/2.2}'
+    tour = root.find('.//{ns}{tag}[@id="tour"]'.format(ns=ns, tag='Placemark'))
+
+    assert tour is not None
+
+    path = []
+    start_time = None
+    tz_offset = current_timezone_offset()
+
+    ns = '{http://www.google.com/kml/ext/2.2}'
+    track = root.find('.//{ns}{tag}'.format(ns=ns, tag='Track'))
+    children = iter(track)
+    for ts, geo in izip(children, children):
+        point_time = datetime.strptime(
+            ts.text,
+            '%Y-%m-%dT%H:%M:%S.%fZ')
+        point_time += tz_offset
+        if start_time is None:
+            start_time = point_time
+        time_delta = point_time - start_time
+        geo_parts = geo.text.split(' ')
+        if len(geo_parts) == 3:
+            longitude, latitude, altitude = geo_parts
+        elif len(geo_parts) == 2:
+            longitude, latitude = geo_parts
+            altitude = None
+        else:
+            raise ValueError("need at least a lat and lon...")
+        path.append({
+            'timestamp': time_delta.total_seconds(),
+            'altitude': altitude,
+            'longitude': longitude,
+            'latitude': latitude,
+            'type': 'gps',
+        })
+
+    path[0]['type'] = 'start'
+    path[-1]['type'] = 'end'
+
+    return start_time, path
