@@ -24,7 +24,7 @@ def upload_to_runkeeper(content):
     for ts, geo in izip(children, children):
         point_time = datetime.strptime(
             ts.text,
-            '%Y-%m-%dT%H:%M:%S.000Z')
+            '%Y-%m-%dT%H:%M:%S.%fZ')
         point_time += tz_offset
         if start_time is None:
             start_time = point_time
