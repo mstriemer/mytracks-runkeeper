@@ -1,5 +1,5 @@
 import httplib2
-from itertools import izip
+from itertools import izip, tee
 from datetime import datetime, timedelta
 import time
 import json
@@ -70,7 +70,13 @@ def parse_track(content):
 
     ns = '{http://www.google.com/kml/ext/2.2}'
     track = root.find('.//{ns}{tag}'.format(ns=ns, tag='Track'))
-    children = iter(track)
+    children, alt_finder = tee(track, 2)
+    altitude = None
+    for ts, geo in izip(alt_finder, alt_finder):
+        geo_parts = geo.text.split(' ')
+        if len(geo_parts) == 3:
+            _, _, altitude = geo_parts
+            break
     for ts, geo in izip(children, children):
         point_time = datetime.strptime(
             ts.text,
@@ -84,7 +90,6 @@ def parse_track(content):
             longitude, latitude, altitude = geo_parts
         elif len(geo_parts) == 2:
             longitude, latitude = geo_parts
-            altitude = None
         else:
             raise ValueError("need at least a lat and lon...")
         path.append({
