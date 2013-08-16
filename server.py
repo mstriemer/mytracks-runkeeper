@@ -48,14 +48,15 @@ class DriveActivityList(BaseHandler):
         q = DriveActivity.all()
         q.order('-uploaded_version_date')
         drive_service = DriveService()
-        uploaded_drive_ids = [da.pk for da in q]
+        uploaded_drive_ids = set(da.pk for da in q)
         drive_folder = find_drive_folder(drive_service, 'My Tracks')
         drive_files = drive_service.files(drive_folder)
         drive_files = [f for f in drive_files
                        if f['id'] not in uploaded_drive_ids]
+        uploaded_files = [f for f in q if not f.ignored]
         self.render_response(
             'drive_activity_list.html',
-            drive_activities=q,
+            drive_activities=uploaded_files,
             drive_files=drive_files,
         )
 
@@ -80,7 +81,22 @@ class UploadDriveActivity(BaseHandler):
         return redirect('/')
 
 
+class IgnoreDriveActivity(BaseHandler):
+
+    def post(self, file_id):
+        drive_service = DriveService()
+        drive_file = drive_service.file(file_id)
+        drive_activity = DriveActivity(
+            pk=file_id,
+            name=drive_file['title'],
+            ignored=True,
+        )
+        drive_activity.put()
+        return redirect('/')
+
+
 application = webapp2.WSGIApplication([
     ('/', DriveActivityList),
     ('/upload/(.*)/', UploadDriveActivity),
+    ('/ignore/(.*)/', IgnoreDriveActivity),
 ], debug=True)

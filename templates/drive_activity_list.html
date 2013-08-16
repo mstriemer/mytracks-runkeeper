@@ -1,3 +1,10 @@
+<style>
+    form { display: inline; }
+    .item {
+        padding: 3px 0;
+    }
+</style>
+
 <h1>Drive Activities</h1>
 
 <div class="drive-activities">
@@ -15,9 +22,12 @@
     <h2>Other Files</h2>
     {% for df in drive_files %}
     <div class="item">
+        {{ df['title'] }}
         <form action="{{ "/upload/{id}/".format(id=df['id']) }}" method="post">
-            {{ df['title'] }}
             <input type="submit" value="Upload" />
+        </form>
+        <form action="{{ "/ignore/{id}/".format(id=df['id']) }}" method="post">
+            <input type="submit" value="Ignore" />
         </form>
     </div>
     {% else %}
