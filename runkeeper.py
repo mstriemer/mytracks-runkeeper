@@ -30,7 +30,7 @@ def upload_to_runkeeper(content):
     logger = logging.getLogger('runkeeper_api')
     logger.info("Request: %s", activity_json)
 
-    rk_http = httplib2.Http()
+    rk_http = httplib2.Http(timeout=45)
     resp, content = rk_http.request(
         'https://api.runkeeper.com/fitnessActivities',
         method='POST',
